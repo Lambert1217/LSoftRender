@@ -30,6 +30,7 @@ namespace LSR
 		Window m_Window;
 		// temp
 		FrameBuffer m_FrameBuffer;
+		Color cColor;
 	};
 
 } // LSR

@@ -14,18 +14,20 @@
 namespace LSR
 {
 	Window::Window(int width, int height, const std::string& title)
-		: m_Window(nullptr), m_Renderer(nullptr), m_Texture(nullptr), m_Running(true), m_Width(width), m_Height(height)
+		: m_Window(nullptr), m_Renderer(nullptr), m_Texture(nullptr),  m_FPSCounter(nullptr),
+			m_Running(true), m_Width(width), m_Height(height), m_Title(title)
 	{
-		int check = SDL_Init(SDL_INIT_VIDEO);
-		LOG_ASSERT(check >= 0);
 		m_Window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN);
-		LOG_ASSERT(m_Window);
+		SDL_assert(m_Window);
 		m_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_SOFTWARE);
-		LOG_ASSERT(m_Renderer);
+		SDL_assert(m_Renderer);
 		m_Texture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
-		LOG_ASSERT(m_Texture);
-		check = SDL_SetTextureBlendMode(m_Texture, SDL_BLENDMODE_BLEND);
-		LOG_ASSERT(check == 0);
+		SDL_assert(m_Texture);
+		int check = SDL_SetTextureBlendMode(m_Texture, SDL_BLENDMODE_BLEND);
+		SDL_assert(check == 0);
+		// 初始化帧计数器
+		m_FPSCounter = std::make_unique<FPSCounter>();
+
 	}
 	Window::~Window()
 	{
@@ -55,5 +57,11 @@ namespace LSR
 		SDL_UpdateTexture(m_Texture, nullptr, frameBuffer.getData(), m_Width * sizeof(uint32_t));
 		SDL_RenderCopy(m_Renderer, m_Texture, nullptr, nullptr);
 		SDL_RenderPresent(m_Renderer);
+	}
+	void Window::updateFPS()
+	{
+		m_FPSCounter->frame();
+		std::string titleWithFPS = m_Title + " - FPS:" + std::to_string(m_FPSCounter->getFPS());
+		SDL_SetWindowTitle(m_Window, titleWithFPS.c_str());
 	}
 } // LSR
